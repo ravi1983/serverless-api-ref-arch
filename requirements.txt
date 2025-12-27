@@ -1,6 +1,11 @@
 # Used only for local dev and CI
-pytest==7.4.3
+pytest
 moto[dynamodb]==5.1.18
-pytest-mock==3.12.0
+pytest-mock
 # Include the layer's requirements for local linting/testing
 -r ./serverless/db_layer/requirements.txt
+
+testcontainers[postgres]
+testcontainers[localstack]
+boto3
+psycopg2-binary

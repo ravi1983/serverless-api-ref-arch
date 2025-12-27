@@ -4,6 +4,8 @@ import boto3
 
 def get_cart_table():
     CART_TABLE = os.environ.get('CART_TABLE_NAME', 'UserCarts')
+
+    endpoint = os.environ.get('DYNAMODB_ENDPOINT') # For integration testing
     dynamodb = boto3.resource('dynamodb')
     return dynamodb.Table(CART_TABLE)
 
