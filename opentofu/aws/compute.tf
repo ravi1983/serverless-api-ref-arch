@@ -56,6 +56,7 @@ module "lambda_sg" {
 }
 
 # Bastion host
+# psql -h item-catalog-db.cukqzuz648ai.us-east-2.rds.amazonaws.com -U item_user -d item_catalog_db
 module "bastion_host" {
   source  = "terraform-aws-modules/ec2-instance/aws"
 

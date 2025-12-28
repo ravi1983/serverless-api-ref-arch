@@ -1,0 +1,53 @@
+name: Deploy Lambda Layer
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'serverless/db_layer/**'
+
+jobs:
+  deploy-layer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Build Layer Zip
+        run: |
+          mkdir -p python
+          # Install requirements into the 'python' folder
+          pip install -r serverless/db_layer/requirements.txt -t python/
+          zip -r layer.zip python/
+
+      - name: Publish Layer Version
+        id: publish_layer
+        run: |
+          LAYER_ARN=$(aws lambda publish-layer-version \
+            --layer-name "db_layer" \
+            --description "Shared DB utilities" \
+            --zip-file fileb://layer.zip \
+            --compatible-runtimes python3.12 \
+            --query 'LayerVersionArn' \
+            --output text)
+          echo "layer_arn=$LAYER_ARN" >> $GITHUB_OUTPUT
+
+      - name: Update Lambda Configuration
+        run: |
+          # This tells your Lambda to use the brand new layer version immediately
+          aws lambda update-function-configuration \
+            --function-name "cart_function" \
+            --layers ${{ steps.publish_layer.outputs.layer_arn }}
