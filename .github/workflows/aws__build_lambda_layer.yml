@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master
-    # paths:
-    #   - 'serverless/db_layer/**'
-    #   - 'serverless/db_layer/*'
+    paths:
+      - 'serverless/db_layer/**'
+      - 'serverless/db_layer/*'
 
 jobs:
   deploy-layer:
@@ -31,8 +31,10 @@ jobs:
       - name: Build Layer Zip
         run: |
           mkdir -p python
-          # Install requirements into the 'python' folder
+          # Install requirements and copy all py files into the 'python' folder
           pip install -r serverless/db_layer/requirements.txt -t python/
+          cp serverless/db_layer/*.py python/
+          
           zip -r layer.zip python/
 
       - name: Publish Layer Version
