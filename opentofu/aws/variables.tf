@@ -1,9 +1,9 @@
 variable "ENV" {
   description = "The environment name (e.g., dev, prod)"
-  type        = string
+  type = string
 }
 
 variable "AWS_REGION" {
   description = "The AWS region to deploy into"
-  type        = string
+  type = string
 }

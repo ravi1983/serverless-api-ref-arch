@@ -1,3 +1,5 @@
+variable MY_IP {}
+
 # Create RDS Postgres
 module "item-catalog-db" {
   source = "terraform-aws-modules/rds/aws"
@@ -15,27 +17,33 @@ module "item-catalog-db" {
   username = "item_user"
   manage_master_user_password = true
 
-  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  vpc_security_group_ids = [module.rds_sg.security_group_id]
   db_subnet_group_name = module.serverless-vpc.database_subnet_group_name
+
+  tags = {
+    Environment = var.ENV
+    DBType = "Postgres"
+    DataType = "ItemCatalog"
+  }
 }
 
-resource "aws_security_group" "rds_sg" {
-  name   = "rds-sg"
+module "rds_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+
+  name = "rds-sg"
   vpc_id = module.serverless-vpc.vpc_id
 
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [module.serverless-vpc.vpc_cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  ingress_with_source_security_group_id = [
+    {
+      rule = "postgresql-tcp" # Automatically sets port 5432/TCP
+      source_security_group_id = module.lambda_sg.security_group_id
+    },
+    {
+      rule                     = "postgresql-tcp"
+      source_security_group_id = module.bastion_sg.security_group_id
+      description              = "PostgreSQL access from Bastion"
+    }
+  ]
 }
 
 # Create DynamoDB for cart and orders
