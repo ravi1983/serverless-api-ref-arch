@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '../../serverless/db_layer'
+      - 'serverless/db_layer/*'
 
 jobs:
   deploy-layer:
