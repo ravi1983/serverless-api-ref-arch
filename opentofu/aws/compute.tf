@@ -16,7 +16,7 @@ module "cart_function" {
   source  = "terraform-aws-modules/lambda/aws"
 
   function_name = "cart-function"
-  handler = "serverless.cloud_wrapper.aws.cart_handler"
+  handler = "cart_handler.lambda_handler"
   runtime = "python3.12"
   layers = [aws_lambda_layer_version.db_layer.arn]
 
