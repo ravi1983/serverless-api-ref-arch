@@ -50,13 +50,25 @@ jobs:
           echo "New Lambda function version: $NEW_VERSION"
 
           # 2. Define the deployment in a JSON string (AppSpec)
-          # This tells CodeDeploy: "Move the 'live' alias to the NEW_VERSION"
-          APPSPEC=$(jq -n \
+          APPSPEC=$(jq -n -c \
             --arg fn "cart-function" \
             --arg al "live" \
             --arg ver "$NEW_VERSION" \
-            '{version: "0.0", Resources: [{TargetService: {Type: "AWS::Lambda::Function", Properties: {Name: $fn, Alias: $al, TargetVersion: $ver}}}]}')
-          echo $APPSPEC
+            '{
+              version: 0.0,
+              Resources: [
+                {
+                  TargetService: {
+                    Type: "AWS::Lambda::Function",
+                    Properties: {
+                      Name: $fn,
+                      Alias: $al,
+                      TargetVersion: $ver
+                    }
+                  }
+                }
+              ]
+            }')
 
           REVISION=$(jq -n -c \
             --arg content "$APPSPEC" \
