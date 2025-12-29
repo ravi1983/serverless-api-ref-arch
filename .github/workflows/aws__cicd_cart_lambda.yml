@@ -27,10 +27,14 @@ jobs:
       - name: Package Function Code
         run: |
           mkdir staging
+          mkdir staging/serverless
+          mkdir staging/serverless/cart_actions
           
           cp serverless/cloud_wrapper/aws/cart_handler.py staging/
           cp serverless/cloud_wrapper/aws/__init__.py staging/
-          cp -r serverless/cart_actions staging/
+          
+          cp -r serverless/cart_actions staging/serverless/
+          cp serverless/__init__.py staging/serverless/
           
           cd staging
           zip -r ../function.zip .
@@ -38,5 +42,5 @@ jobs:
       - name: Update Lambda Code
         run: |
           aws lambda update-function-code \
-            --function-name cart_function \
+            --function-name cart-function \
             --zip-file fileb://function.zip
