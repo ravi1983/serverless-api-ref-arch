@@ -58,8 +58,12 @@ jobs:
             '{version: "0.0", Resources: [{TargetService: {Type: "AWS::Lambda::Function", Properties: {Name: $fn, Alias: $al, TargetVersion: $ver}}}]}')
           echo $APPSPEC
 
-          # 3. Execute the deployment
+          REVISION=$(jq -n -c \
+            --arg content "$APPSPEC" \
+            '{revisionType: "AppSpecContent", appSpecContent: {content: $content}}')
+
+          # 4. Execute the deployment
           aws deploy create-deployment \
             --application-name cart-function-deploy \
             --deployment-group-name cart-production \
-            --revision "{\"revisionType\": \"AppSpecContent\", \"appSpecContent\": {\"content\": $APPSPEC}}"
+            --revision "$REVISION"
