@@ -38,5 +38,5 @@ jobs:
       - name: Update Lambda Code
         run: |
           aws lambda update-function-code \
-            --function-name cart_function \
+            --function-name cart-function \
             --zip-file fileb://function.zip
