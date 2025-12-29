@@ -41,10 +41,11 @@ jobs:
 
       - name: Deploy to Lambda via CodeDeploy
         run: |
-          CURRENT_VERSION=$(aws lambda list-versions-by-function \
-            --function-name cart_function --output text \
-            | grep "LATEST" \
-            | awk '{print $(NF-1)}')
+          CURRENT_VERSION=$(aws lambda get-alias \
+            --function-name cart-function \
+            --name live \
+            --query 'FunctionVersion' \
+            --output text)
             
           # 1. Upload code and publish a version. Capture the version number.
           NEW_VERSION=$(aws lambda update-function-code \
