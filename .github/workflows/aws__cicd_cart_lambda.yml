@@ -29,7 +29,7 @@ jobs:
           mkdir staging
           
           cp serverless/cloud_wrapper/aws/cart_handler.py staging/
-          cp -r serverless/cart_action staging/
+          cp -r serverless/cart_actions staging/
           
           cd staging
           zip -r ../function.zip .
