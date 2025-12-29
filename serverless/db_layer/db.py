@@ -13,7 +13,7 @@ def get_cart_table():
 def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
     conn = psycopg2.connect(
-        os.environ['DATABASE_URL'],
+        host=os.environ['DATABASE_URL'],
         sslmode='require'
     )
     return conn

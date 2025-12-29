@@ -1,7 +1,13 @@
 import time
 from psycopg2.extras import RealDictCursor
 from boto3.dynamodb.conditions import Key
-from serverless.db_layer.db import get_psql_connection, get_cart_table
+
+try:
+    # Works in Lambda
+    from db import get_psql_connection, get_cart_table
+except ImportError:
+    # Works locally during development
+    from serverless.db_layer.db import get_psql_connection, get_cart_table
 
 def add_item_to_cart(user_id, item_id):
     """Lookup item in RDS and save to DynamoDB with 1hr TTL."""
