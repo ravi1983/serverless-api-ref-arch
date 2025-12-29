@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'serverless/db_layer/**'
-      - 'serverless/db_layer/*'
+#    paths:
+#      - 'serverless/db_layer/**'
+#      - 'serverless/db_layer/*'
 
 jobs:
   deploy-layer:
@@ -53,5 +53,5 @@ jobs:
         run: |
           # This tells your Lambda to use the brand new layer version immediately
           aws lambda update-function-configuration \
-            --function-name "cart_function" \
+            --function-name "cart-function" \
             --layers ${{ steps.publish_layer.outputs.layer_arn }}
