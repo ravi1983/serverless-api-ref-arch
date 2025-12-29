@@ -33,7 +33,7 @@ jobs:
           cp serverless/cloud_wrapper/aws/cart_handler.py staging/
           cp serverless/cloud_wrapper/aws/__init__.py staging/
           
-          cp -r serverless/cart_actions staging/serverless/cart_actions/
+          cp -r serverless/cart_actions staging/serverless/
           cp serverless/__init__.py staging/serverless/
           
           cd staging
