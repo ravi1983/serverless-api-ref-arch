@@ -18,6 +18,7 @@ resource "aws_lambda_function" "cart_function" {
   runtime       = "python3.12"
   role          = aws_iam_role.lambda_exec_role.arn
 
+  publish = true
   filename      = "${path.module}/dummy.zip"
   layers = [aws_lambda_layer_version.db_layer.arn]
 
