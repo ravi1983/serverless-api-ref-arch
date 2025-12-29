@@ -27,6 +27,8 @@ jobs:
       - name: Package Function Code
         run: |
           mkdir staging
+          mkdir staging/serverless
+          mkdir staging/serverless/cart_actions
           
           cp serverless/cloud_wrapper/aws/cart_handler.py staging/
           cp serverless/cloud_wrapper/aws/__init__.py staging/
