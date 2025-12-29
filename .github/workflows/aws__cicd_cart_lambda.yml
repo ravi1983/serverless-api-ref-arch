@@ -42,7 +42,7 @@ jobs:
       - name: Deploy to Lambda via CodeDeploy
         run: |
           CURRENT_VERSION=$(aws lambda get-alias \
-            --function-name cart-function \
+            --function-name cart_function \
             --name live \
             --query 'FunctionVersion' \
             --output text)
