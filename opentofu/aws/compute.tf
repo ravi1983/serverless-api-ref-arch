@@ -13,7 +13,7 @@ resource "aws_lambda_layer_version" "db_layer" {
 
 # Cart function
 resource "aws_lambda_function" "cart_function" {
-  function_name = "cart-function"
+  function_name = "cart_function"
   handler       = "cart_handler.lambda_handler"
   runtime       = "python3.12"
   role          = aws_iam_role.lambda_exec_role.arn
@@ -45,7 +45,7 @@ resource "aws_lambda_function" "cart_function" {
 
 # The "Assume Role" Policy (allows Lambda to use this role)
 resource "aws_iam_role" "lambda_exec_role" {
-  name = "cart-function-exec-role"
+  name = "cart_function-exec-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

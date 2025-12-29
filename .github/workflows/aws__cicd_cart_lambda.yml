@@ -43,7 +43,7 @@ jobs:
         run: |
           # 1. Upload code and publish a version. Capture the version number.
           NEW_VERSION=$(aws lambda update-function-code \
-            --function-name cart-function \
+            --function-name cart_function \
             --zip-file fileb://function.zip \
             --publish \
             --query 'Version' --output text)
@@ -51,7 +51,7 @@ jobs:
 
           # 2. Define the deployment in a JSON string (AppSpec)
           APPSPEC=$(jq -n -c \
-            --arg fn "cart-function" \
+            --arg fn "cart_function" \
             --arg al "live" \
             --arg ver "$NEW_VERSION" \
             '{
@@ -76,6 +76,6 @@ jobs:
 
           # 4. Execute the deployment
           aws deploy create-deployment \
-            --application-name cart-function-deploy \
+            --application-name cart_function-deploy \
             --deployment-group-name cart-production \
             --revision "$REVISION"

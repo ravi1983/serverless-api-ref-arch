@@ -1,6 +1,6 @@
 resource "aws_codedeploy_app" "cart_app" {
   compute_platform = "Lambda"
-  name             = "cart-function-deploy"
+  name             = "cart_function-deploy"
 }
 
 resource "aws_codedeploy_deployment_group" "cart_dg" {

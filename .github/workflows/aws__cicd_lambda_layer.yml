@@ -53,5 +53,5 @@ jobs:
         run: |
           # This tells your Lambda to use the brand new layer version immediately
           aws lambda update-function-configuration \
-            --function-name "cart-function" \
+            --function-name "cart_function" \
             --layers ${{ steps.publish_layer.outputs.layer_arn }}
