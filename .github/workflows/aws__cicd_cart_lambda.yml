@@ -69,10 +69,12 @@ jobs:
                 }
               ]
             }')
+          echo "APPSPEC: $APPSPEC"
 
           REVISION=$(jq -n -c \
             --arg content "$APPSPEC" \
             '{revisionType: "AppSpecContent", appSpecContent: {content: $content}}')
+          echo "Revision: $REVISION"
 
           # 4. Execute the deployment
           aws deploy create-deployment \
