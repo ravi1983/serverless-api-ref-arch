@@ -43,7 +43,7 @@ jobs:
         run: |
           # 1. Upload code and publish a version. Capture the version number.
           NEW_VERSION=$(aws lambda update-function-code \
-            --function-name cart_function \
+            --function-name cart-function \
             --zip-file fileb://function.zip \
             --publish \
             --query 'Version' --output text)
@@ -51,13 +51,13 @@ jobs:
           # 2. Define the deployment in a JSON string (AppSpec)
           # This tells CodeDeploy: "Move the 'live' alias to the NEW_VERSION"
           APPSPEC=$(jq -n \
-            --arg fn "cart_function" \
+            --arg fn "cart-function" \
             --arg al "live" \
             --arg ver "$NEW_VERSION" \
             '{version: "0.0", Resources: [{TargetService: {Type: "AWS::Lambda::Function", Properties: {Name: $fn, Alias: $al, TargetVersion: $ver}}}]}')
 
           # 3. Execute the deployment
           aws codedeploy create-deployment \
-            --application-name cart_function-deploy \
+            --application-name cart-function-deploy \
             --deployment-group-name cart-production \
             --app-spec-content "{\"content\": $(echo $APPSPEC | jq -Rs .)}"
