@@ -41,6 +41,12 @@ jobs:
 
       - name: Deploy to Lambda via CodeDeploy
         run: |
+          CURRENT_VERSION=$(aws lambda get-alias \
+            --function-name cart_function \
+            --name live \
+            --query 'FunctionVersion' \
+            --output text)
+            
           # 1. Upload code and publish a version. Capture the version number.
           NEW_VERSION=$(aws lambda update-function-code \
             --function-name cart_function \
@@ -54,6 +60,7 @@ jobs:
             --arg fn "cart_function" \
             --arg al "live" \
             --arg ver "$NEW_VERSION" \
+            --arg cur "$CURRENT_VERSION" \
             '{
               version: 0.0,
               Resources: [
@@ -63,6 +70,7 @@ jobs:
                     Properties: {
                       Name: $fn,
                       Alias: $al,
+                      CurrentVersion: $cur,
                       TargetVersion: $ver
                     }
                   }
