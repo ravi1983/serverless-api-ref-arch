@@ -57,7 +57,7 @@ jobs:
             '{version: "0.0", Resources: [{TargetService: {Type: "AWS::Lambda::Function", Properties: {Name: $fn, Alias: $al, TargetVersion: $ver}}}]}')
 
           # 3. Execute the deployment
-          aws codedeploy create-deployment \
+          aws deploy create-deployment \
             --application-name cart-function-deploy \
             --deployment-group-name cart-production \
             --app-spec-content "{\"content\": $(echo $APPSPEC | jq -Rs .)}"
