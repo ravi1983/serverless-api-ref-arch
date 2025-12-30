@@ -34,7 +34,6 @@ def add_item_to_cart(user_id, item_id):
             }
             table.put_item(Item=item)
             print(f'Saved item {item_id} to cart for user {user_id}')
-
             return {"success": True, "cart": get_cart(user_id)}
     finally:
         conn.close()
