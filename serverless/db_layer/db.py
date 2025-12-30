@@ -16,7 +16,6 @@ if secret_arn:
     secretsmanager = boto3.client('secretsmanager')
     db_creds = secretsmanager.get_secret_value(SecretId=secret_arn)
     creds = json.loads(db_creds['SecretString'])
-    db_creds = db_creds.split(':')
     os.environ['DATABASE_FULL_URL'] = f'postgres://{creds['username']}:\
             {creds['password']}@{os.environ['DATABASE_URL']}/item_catalog_db'
     print(f'********************Database URL is {os.environ["DATABASE_FULL_URL"]}')
