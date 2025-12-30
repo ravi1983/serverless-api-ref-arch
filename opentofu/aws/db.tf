@@ -49,14 +49,14 @@ module "serverless-dynamodb-cart" {
   source = "terraform-aws-modules/dynamodb-table/aws"
 
   name = "cart"
-  hash_key = "userId"
+  hash_key = "itemId"
 
   billing_mode = "PAY_PER_REQUEST"
   ttl_attribute_name = "ttl"
   ttl_enabled = true
 
   attributes = [
-    {name = "userId", type="S"}
+    {name = "itemId", type="S"}
   ]
 }
 

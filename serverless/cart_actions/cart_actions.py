@@ -26,8 +26,8 @@ def add_item_to_cart(user_id, item_id):
             # 2. DynamoDB Save
             ttl = int(time.time()) + 3600
             item = {
-                'userId': user_id,
                 'itemId': item_id,
+                'userId': user_id,
                 'description': product['description'],
                 'price': str(product['price']),
                 'ttl': ttl
