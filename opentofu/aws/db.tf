@@ -56,7 +56,18 @@ module "serverless-dynamodb-cart" {
   ttl_enabled = true
 
   attributes = [
-    {name = "itemId", type="S"}
+    {name = "itemId", type="S"},
+    {name = "userId", type="S"}
+  ]
+
+  # Very in-efficient, but doing it to demonstrate secondary indexes.
+  # Ideally userId needs to be the partition key and the cart items are stored as list in ONE column.
+  global_secondary_indexes = [
+    {
+      name               = "UserIndex"
+      hash_key           = "userId"
+      projection_type    = "ALL"
+    }
   ]
 }
 

@@ -62,4 +62,4 @@ def remove_from_cart(user_id, item_id):
     )
     print(f'Removed item {item_id} from cart for user {user_id}')
 
-    return {"success": True, "removedItemId": item_id}
+    return {"success": True, "cart": get_cart(user_id)}
