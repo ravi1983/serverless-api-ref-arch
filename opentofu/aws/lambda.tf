@@ -1,10 +1,3 @@
-module "infra" {
-  source = "../infra"
-  MY_IP = var.MY_IP
-  AWS_REGION = var.AWS_REGION
-  ENV = var.ENV
-}
-
 # Lambda layer
 resource "aws_lambda_layer_version" "db_layer" {
   layer_name = "db_layer"
@@ -30,14 +23,14 @@ resource "aws_lambda_function" "cart_function" {
   layers = [aws_lambda_layer_version.db_layer.arn]
 
   vpc_config {
-    subnet_ids         = module.infra.private_subnets
-    security_group_ids = [module.infra.lambda_sg]
+    subnet_ids         = module.serverless-vpc.private_subnets
+    security_group_ids = [module.lambda_sg.security_group_id]
   }
 
   environment {
     variables = {
-      DATABASE_URL    = module.infra.db_address
-      CART_TABLE_NAME = module.infra.cart_table_id
+      DATABASE_URL    = module.item-catalog-db.db_instance_address
+      CART_TABLE_NAME = module.serverless-dynamodb-cart.dynamodb_table_id
     }
   }
 
@@ -48,6 +41,27 @@ resource "aws_lambda_function" "cart_function" {
       filename,
       source_code_hash
     ]
+  }
+}
+
+module "lambda_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+
+  name        = "lambda-sg"
+  description = "Security group for lambda functions"
+  vpc_id      = module.serverless-vpc.vpc_id
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = {
+    Environment = var.ENV
   }
 }
 
@@ -90,7 +104,7 @@ resource "aws_iam_role_policy" "dynamodb_read" {
         "dynamodb:Scan",
         "dynamodb:BatchGetItem"
       ]
-      Resource = [module.infra.cart_table_arn]
+      Resource = [module.serverless-dynamodb-cart.dynamodb_table_arn]
     },
       {
         # Necessary for Lambda to run inside a VPC

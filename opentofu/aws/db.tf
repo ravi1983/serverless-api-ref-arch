@@ -44,27 +44,6 @@ module "rds_sg" {
   ]
 }
 
-module "lambda_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-
-  name        = "lambda-sg"
-  description = "Security group for lambda functions"
-  vpc_id      = module.serverless-vpc.vpc_id
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  tags = {
-    Environment = var.ENV
-  }
-}
-
 # Create DynamoDB for cart and orders
 module "serverless-dynamodb-cart" {
   source = "terraform-aws-modules/dynamodb-table/aws"
@@ -79,18 +58,6 @@ module "serverless-dynamodb-cart" {
   attributes = [
     {name = "userId", type="S"}
   ]
-}
-
-output "db_address" {
-  value = module.item-catalog-db.db_instance_address
-}
-
-output "cart_table_id" {
-  value = module.serverless-dynamodb-cart.dynamodb_table_id
-}
-
-output "cart_table_arn" {
-  value = module.serverless-dynamodb-cart.dynamodb_table_arn
 }
 
 output "rds_sg_id" {

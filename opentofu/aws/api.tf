@@ -1,19 +1,26 @@
-# 1. Define the HTTP API
 resource "aws_apigatewayv2_api" "cart_api" {
   name          = "cart-service-api"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "POST", "DELETE"]
+    allow_headers = ["content-type"]
+  }
 }
 
-# 2. Create a Lambda Integration
-# This allows the API to "talk" to your specific Lambda function
 resource "aws_apigatewayv2_integration" "lambda_cart_int" {
   api_id           = aws_apigatewayv2_api.cart_api.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.cart_function.invoke_arn
   payload_format_version = "2.0"
+
+  # Used in handler
+  request_parameters = {
+    "append:querystring.eventType" = "$context.httpMethod"
+  }
 }
 
-# 3. Define the Routes
 # GET /cart
 resource "aws_apigatewayv2_route" "get_cart" {
   api_id    = aws_apigatewayv2_api.cart_api.id
@@ -35,14 +42,12 @@ resource "aws_apigatewayv2_route" "remove_item" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_cart_int.id}"
 }
 
-# 4. Create a Stage (Deployment)
 resource "aws_apigatewayv2_stage" "cart_stage" {
   api_id      = aws_apigatewayv2_api.cart_api.id
   name        = "$default"
   auto_deploy = true
 }
 
-# 5. Permission for API Gateway to call Lambda
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
