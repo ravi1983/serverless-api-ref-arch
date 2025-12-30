@@ -43,6 +43,7 @@ def get_cart(user_id):
     table = get_cart_table()
     
     response = table.query(
+        IndexName='UserIndex',
         KeyConditionExpression=Key('userId').eq(user_id)
     )
     items = response.get('Items', [])

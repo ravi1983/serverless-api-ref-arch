@@ -6,7 +6,7 @@ function App() {
     const [cart, setCart] = useState(null);
     const [message, setMessage] = useState('');
 
-    const API_URL = "YOUR_API_GATEWAY_URL/cart";
+    const API_URL = "https://4pbp0anjc3.execute-api.us-east-2.amazonaws.com/cart";
 
     // 1. GET: View Cart
     const viewCart = async () => {
@@ -23,12 +23,14 @@ function App() {
     // 2. POST: Add Item
     const addItem = async () => {
         try {
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ item_id: itemId })
             });
-            setMessage(`Item ${itemId} added!`);
+            const data = await response.json();
+
+            setMessage(data.cart);
             setItemId('');
         } catch (err) {
             setMessage('Error adding item.');
@@ -38,12 +40,14 @@ function App() {
     // 3. DELETE: Remove Item
     const removeItem = async () => {
         try {
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ item_id: itemId })
             });
-            setMessage(`Item ${itemId} removed!`);
+            const data = await response.json();
+
+            setMessage(data.cart);
             setItemId('');
         } catch (err) {
             setMessage('Error removing item.');
