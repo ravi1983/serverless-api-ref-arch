@@ -24,6 +24,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies and run tests
+        run: |
+          pip install -r requirements.txt
+          pytest
+
       - name: Package Function Code
         run: |
           mkdir staging

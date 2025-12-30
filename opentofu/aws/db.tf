@@ -49,7 +49,8 @@ module "serverless-dynamodb-cart" {
   source = "terraform-aws-modules/dynamodb-table/aws"
 
   name = "cart"
-  hash_key = "itemId"
+  hash_key = "userId"
+  range_key = "itemId"
 
   billing_mode = "PAY_PER_REQUEST"
   ttl_attribute_name = "ttl"
@@ -58,16 +59,6 @@ module "serverless-dynamodb-cart" {
   attributes = [
     {name = "itemId", type="S"},
     {name = "userId", type="S"}
-  ]
-
-  # Very in-efficient, but doing it to demonstrate secondary indexes.
-  # Ideally userId needs to be the partition key and the cart items are stored as list in ONE column.
-  global_secondary_indexes = [
-    {
-      name               = "UserIndex"
-      hash_key           = "userId"
-      projection_type    = "ALL"
-    }
   ]
 }
 

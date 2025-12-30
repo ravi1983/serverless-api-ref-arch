@@ -102,6 +102,7 @@ resource "aws_iam_role_policy" "dynamodb_read" {
       Action   = [
         "dynamodb:GetItem",
         "dynamodb:PutItem",
+        "dynamodb:DeleteItem",
         "dynamodb:Query",
         "dynamodb:Scan",
         "dynamodb:BatchGetItem"
