@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     }
     http_method = event['requestContext']['http']['method']
     event_type = method_map.get(http_method)
-    print(f'Event type is {event_type}')
+    print(f'Event type {event_type}')
 
     result = process_cart_action(
         event_type,
