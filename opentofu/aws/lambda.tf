@@ -31,6 +31,7 @@ resource "aws_lambda_function" "cart_function" {
     variables = {
       DATABASE_URL    = module.item-catalog-db.db_instance_address
       CART_TABLE_NAME = module.serverless-dynamodb-cart.dynamodb_table_id
+      DB_SECRET_ARN = module.item-catalog-db.db_instance_master_user_secret_arn
     }
   }
 
@@ -115,6 +116,11 @@ resource "aws_iam_role_policy" "dynamodb_read" {
           "ec2:DeleteNetworkInterface"
         ]
         Resource = "*"
+      },
+      {
+        Action   = "secretsmanager:GetSecretValue"
+        Effect   = "Allow"
+        Resource = module.item-catalog-db.db_instance_master_user_secret_arn
       }]
   })
 }

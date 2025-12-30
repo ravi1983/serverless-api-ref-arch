@@ -10,8 +10,18 @@ def get_cart_table():
     dynamodb = boto3.resource('dynamodb')
     return dynamodb.Table(CART_TABLE)
 
+secret_arn = os.environ['DB_SECRET_ARN']
+if secret_arn:
+    secretsmanager = boto3.client('secretsmanager')
+    db_creds = secretsmanager.get_secret_value(SecretId=secret_arn)
+    db_creds = db_creds['SecretString']
+    db_creds = db_creds.split(':')
+    os.environ['DATABASE_URL'] = f'postgres://{db_creds[0]}:{db_creds[1]}@{db_creds[2]}/postgres'
+    print(f'********************Database URL is {os.environ["DATABASE_URL"]}')
+
 def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
+    print(f'DB URL is {os.environ["DATABASE_URL"]}')
     conn = psycopg2.connect(
         host=os.environ['DATABASE_URL'],
         sslmode='require'
