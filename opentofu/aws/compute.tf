@@ -135,3 +135,84 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
+
+
+##### API Gateway #####
+resource "aws_apigatewayv2_api" "cart_api" {
+  name          = "cart-service-api"
+  protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["*"]
+    allow_headers = ["*"]
+  }
+}
+
+resource "aws_apigatewayv2_integration" "lambda_cart_int" {
+  api_id           = aws_apigatewayv2_api.cart_api.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.cart_function.invoke_arn
+  payload_format_version = "2.0"
+
+  # Used in handler
+  request_parameters = {
+    "append:querystring.eventType" = "$context.httpMethod"
+  }
+}
+
+resource "aws_apigatewayv2_authorizer" "cognito_auth" {
+  api_id           = aws_apigatewayv2_api.cart_api.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "cognito-authorizer"
+
+  jwt_configuration {
+    issuer   = "https://${aws_cognito_user_pool.pool.endpoint}"
+    audience = [aws_cognito_user_pool_client.client.id]
+  }
+}
+
+# GET /cart
+resource "aws_apigatewayv2_route" "get_cart" {
+  api_id    = aws_apigatewayv2_api.cart_api.id
+  route_key = "GET /cart"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_cart_int.id}"
+
+  authorization_type = "JWT"
+  authorizer_id = aws_apigatewayv2_authorizer.cognito_auth.id
+}
+
+# POST /cart (Add item)
+resource "aws_apigatewayv2_route" "add_item" {
+  api_id    = aws_apigatewayv2_api.cart_api.id
+  route_key = "POST /cart"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_cart_int.id}"
+
+  authorization_type = "JWT"
+  authorizer_id = aws_apigatewayv2_authorizer.cognito_auth.id
+}
+
+# DELETE /cart (Remove item)
+resource "aws_apigatewayv2_route" "remove_item" {
+  api_id    = aws_apigatewayv2_api.cart_api.id
+  route_key = "DELETE /cart"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_cart_int.id}"
+
+  authorization_type = "JWT"
+  authorizer_id = aws_apigatewayv2_authorizer.cognito_auth.id
+}
+
+resource "aws_apigatewayv2_stage" "cart_stage" {
+  api_id      = aws_apigatewayv2_api.cart_api.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "api_gw" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.cart_function.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.cart_api.execution_arn}/*/*"
+}

@@ -9,3 +9,6 @@ variable "AWS_REGION" {
 }
 
 variable MY_IP {}
+
+variable "GOOGLE_CLIENT_ID" {}
+variable "GOOGLE_CLIENT_SECRET" {}
