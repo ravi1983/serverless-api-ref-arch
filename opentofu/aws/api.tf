@@ -4,8 +4,8 @@ resource "aws_apigatewayv2_api" "cart_api" {
 
   cors_configuration {
     allow_origins = ["*"]
-    allow_methods = ["GET", "POST", "DELETE"]
-    allow_headers = ["content-type"]
+    allow_methods = ["*"]
+    allow_headers = ["*"]
   }
 }
 

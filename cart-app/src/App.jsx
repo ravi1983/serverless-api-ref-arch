@@ -6,7 +6,12 @@ function App() {
     const [cart, setCart] = useState(null);
     const [message, setMessage] = useState('');
 
-    const API_URL = "https://4pbp0anjc3.execute-api.us-east-2.amazonaws.com/cart";
+    // Hardcoded UserID for all requests
+    const USER_ID = "123456";
+    const BASE_URL = "https://4pbp0anjc3.execute-api.us-east-2.amazonaws.com/cart";
+
+    // Construct the URL with the query parameter
+    const API_URL = `${BASE_URL}?userId=${USER_ID}`;
 
     // 1. GET: View Cart
     const viewCart = async () => {
@@ -26,11 +31,13 @@ function App() {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ item_id: itemId })
+                body: JSON.stringify({ itemId })
             });
             const data = await response.json();
 
-            setMessage(data.cart);
+            // Update the cart state with the new list returned from Lambda
+            setCart(data.cart);
+            setMessage(`Added item ${itemId}`);
             setItemId('');
         } catch (err) {
             setMessage('Error adding item.');
@@ -43,11 +50,13 @@ function App() {
             const response = await fetch(API_URL, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ item_id: itemId })
+                body: JSON.stringify({ itemId })
             });
             const data = await response.json();
 
-            setMessage(data.cart);
+            // Update the cart state with the new list returned from Lambda
+            setCart(data.cart);
+            setMessage(`Removed item ${itemId}`);
             setItemId('');
         } catch (err) {
             setMessage('Error removing item.');
@@ -57,6 +66,7 @@ function App() {
     return (
         <div className="App">
             <h1>Serverless Cart Service</h1>
+            <p>Acting as User: <strong>{USER_ID}</strong></p>
 
             <div className="card">
                 <input
@@ -77,8 +87,8 @@ function App() {
 
             {cart && (
                 <div className="cart-display">
-                    <h3>Your Items:</h3>
-                    <pre>{JSON.stringify(cart, null, 2)}</pre>
+                    <h3>Your Items ({cart.itemCount || 0}):</h3>
+                    <pre>{JSON.stringify(cart.items, null, 2)}</pre>
                 </div>
             )}
         </div>
