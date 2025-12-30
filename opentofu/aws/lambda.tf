@@ -106,7 +106,10 @@ resource "aws_iam_role_policy" "dynamodb_read" {
         "dynamodb:Scan",
         "dynamodb:BatchGetItem"
       ]
-      Resource = [module.serverless-dynamodb-cart.dynamodb_table_arn]
+      Resource = [
+        module.serverless-dynamodb-cart.dynamodb_table_arn,
+        "${module.serverless-dynamodb-cart.dynamodb_table_arn}/*"
+      ]
     },
       {
         # Necessary for Lambda to run inside a VPC
