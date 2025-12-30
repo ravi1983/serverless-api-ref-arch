@@ -1,5 +1,3 @@
-variable MY_IP {}
-
 # Create RDS Postgres
 module "item-catalog-db" {
   source = "terraform-aws-modules/rds/aws"
@@ -46,6 +44,27 @@ module "rds_sg" {
   ]
 }
 
+module "lambda_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+
+  name        = "lambda-sg"
+  description = "Security group for lambda functions"
+  vpc_id      = module.serverless-vpc.vpc_id
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = {
+    Environment = var.ENV
+  }
+}
+
 # Create DynamoDB for cart and orders
 module "serverless-dynamodb-cart" {
   source = "terraform-aws-modules/dynamodb-table/aws"
@@ -62,18 +81,22 @@ module "serverless-dynamodb-cart" {
   ]
 }
 
-module "serverless-dynamodb-order" {
-  source = "terraform-aws-modules/dynamodb-table/aws"
+output "db_address" {
+  value = module.item-catalog-db.db_instance_address
+}
 
-  name = "order"
-  hash_key = "userId"
-  range_key = "orderId"
+output "cart_table_id" {
+  value = module.serverless-dynamodb-cart.dynamodb_table_id
+}
 
-  billing_mode = "PAY_PER_REQUEST"
-  ttl_enabled = false
+output "cart_table_arn" {
+  value = module.serverless-dynamodb-cart.dynamodb_table_arn
+}
 
-  attributes = [
-    {name = "userId", type="S"},
-    {name = "orderId", type="N"}
-  ]
+output "rds_sg_id" {
+  value = module.rds_sg.security_group_id
+}
+
+output "lambda_sg" {
+  value = module.lambda_sg.security_group_id
 }

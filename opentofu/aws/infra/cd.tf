@@ -34,13 +34,3 @@ resource "aws_iam_role_policy_attachment" "codedeploy_lambda" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda"
   role       = aws_iam_role.codedeploy_role.name
 }
-
-resource "aws_lambda_alias" "cart_alias" {
-  name             = "live"
-  function_name    = aws_lambda_function.cart_function.function_name
-  function_version = aws_lambda_function.cart_function.version
-
-  lifecycle {
-    ignore_changes = [function_version]
-  }
-}

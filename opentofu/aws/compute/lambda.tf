@@ -1,3 +1,10 @@
+module "infra" {
+  source = "../infra"
+  MY_IP = var.MY_IP
+  AWS_REGION = var.AWS_REGION
+  ENV = var.ENV
+}
+
 # Lambda layer
 resource "aws_lambda_layer_version" "db_layer" {
   layer_name = "db_layer"
@@ -23,14 +30,14 @@ resource "aws_lambda_function" "cart_function" {
   layers = [aws_lambda_layer_version.db_layer.arn]
 
   vpc_config {
-    subnet_ids         = module.serverless-vpc.private_subnets
-    security_group_ids = [module.lambda_sg.security_group_id]
+    subnet_ids         = module.infra.private_subnets
+    security_group_ids = [module.infra.lambda_sg]
   }
 
   environment {
     variables = {
-      DATABASE_URL    = module.item-catalog-db.db_instance_address
-      CART_TABLE_NAME = module.serverless-dynamodb-cart.dynamodb_table_id
+      DATABASE_URL    = module.infra.db_address
+      CART_TABLE_NAME = module.infra.cart_table_id
     }
   }
 
@@ -58,6 +65,16 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
+resource "aws_lambda_alias" "cart_alias" {
+  name             = "live"
+  function_name    = aws_lambda_function.cart_function.function_name
+  function_version = aws_lambda_function.cart_function.version
+
+  lifecycle {
+    ignore_changes = [function_version]
+  }
+}
+
 # The DynamoDB Read Policy
 resource "aws_iam_role_policy" "dynamodb_read" {
   name = "dynamodb-read-policy"
@@ -73,7 +90,7 @@ resource "aws_iam_role_policy" "dynamodb_read" {
         "dynamodb:Scan",
         "dynamodb:BatchGetItem"
       ]
-      Resource = [module.serverless-dynamodb-cart.dynamodb_table_arn]
+      Resource = [module.infra.cart_table_arn]
     },
       {
         # Necessary for Lambda to run inside a VPC
@@ -92,71 +109,4 @@ resource "aws_iam_role_policy" "dynamodb_read" {
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-module "lambda_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-
-  name        = "lambda-sg"
-  description = "Security group for lambda functions"
-  vpc_id      = module.serverless-vpc.vpc_id
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  tags = {
-    Environment = var.ENV
-  }
-}
-
-# Bastion host
-# psql -h item-catalog-db.cukqzuz648ai.us-east-2.rds.amazonaws.com -U item_user -d item_catalog_db
-module "bastion_host" {
-  source  = "terraform-aws-modules/ec2-instance/aws"
-
-  name = "bastion-host"
-  ami = "ami-00e428798e77d38d9"
-  instance_type = "t3.micro"
-  key_name = "ubuntu-dev"
-
-  cpu_options = {}
-
-  subnet_id  = module.serverless-vpc.public_subnets[0]
-  vpc_security_group_ids = [module.bastion_sg.security_group_id]
-  associate_public_ip_address = true
-
-  user_data = <<-EOT
-    #!/bin/bash
-    dnf update -y
-    dnf install -y postgresql15 nmap-ncat
-  EOT
-
-  tags = {
-    Environment = var.ENV
-  }
-}
-
-
-module "bastion_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-
-  name        = "bastion-sg"
-  vpc_id      = module.serverless-vpc.vpc_id
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = "${var.MY_IP}/32"
-    }
-  ]
-
-  egress_rules = ["all-all"]
 }
