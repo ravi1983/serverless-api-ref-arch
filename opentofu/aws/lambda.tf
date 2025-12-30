@@ -101,6 +101,7 @@ resource "aws_iam_role_policy" "dynamodb_read" {
       Effect   = "Allow"
       Action   = [
         "dynamodb:GetItem",
+        "dynamodb:PutItem",
         "dynamodb:Query",
         "dynamodb:Scan",
         "dynamodb:BatchGetItem"
