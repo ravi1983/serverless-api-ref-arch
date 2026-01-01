@@ -1,6 +1,9 @@
 trigger: none
 
 pool:
+  name: Default
+  demands:
+    - Agent.Name -equals udbuntu-dev
   vmImage: 'ubuntu-latest'
 
 variables:
