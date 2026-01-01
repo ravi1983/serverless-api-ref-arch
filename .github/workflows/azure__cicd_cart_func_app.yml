@@ -1,11 +1,11 @@
 name: CI - Build and Package
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'serverless/cloud_wrapper/azure/cart_handler.py'
-      - 'serverless/cart_actions/**'
-      - 'serverless/db_layer/**'
+    branches: [ master ]
+#    paths:
+#      - 'serverless/cloud_wrapper/azure/cart_handler.py'
+#      - 'serverless/cart_actions/**'
+#      - 'serverless/db_layer/**'
 
 jobs:
   build:
