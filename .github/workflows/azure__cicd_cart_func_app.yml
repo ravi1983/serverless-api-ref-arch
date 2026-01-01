@@ -8,7 +8,7 @@ on:
 #      - 'serverless/db_layer/**'
 
 jobs:
-  build:
+  build-func-app:
     runs-on: ubuntu-latest
     environment: dev
 
@@ -51,12 +51,12 @@ jobs:
         with:
           inlineScript: |
             az storage blob upload \
-              --account-name linuxfunctionappsa \
+              --account-name cartfunccode2026 \
               --container-name function-releases \
               --name function.zip \
               --file function.zip \
               --overwrite true \
-              --auth-mode key
+              --auth-mode login
 
       - name: Trigger AzDO Pipeline
         uses: Azure/pipelines@v1
