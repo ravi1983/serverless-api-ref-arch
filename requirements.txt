@@ -9,3 +9,5 @@ testcontainers[postgres]
 testcontainers[localstack]
 boto3
 psycopg2-binary
+
+azure.functions
