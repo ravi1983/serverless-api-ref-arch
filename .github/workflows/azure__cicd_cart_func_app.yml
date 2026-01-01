@@ -46,11 +46,17 @@ jobs:
           cd staging
           zip -r ../function.zip .
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload to Azure Blob
+        uses: azure/CLI@v2
         with:
-          name: function-zip
-          path: function.zip
+          inlineScript: |
+            az storage blob upload \
+              --account-name linuxfunctionappsa \
+              --container-name function-releases \
+              --name function.zip \
+              --file function.zip \
+              --overwrite true \
+              --auth-mode key
 
       - name: Trigger AzDO Pipeline
         uses: Azure/pipelines@v1
