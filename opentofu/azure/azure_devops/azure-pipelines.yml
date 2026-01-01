@@ -3,7 +3,7 @@ trigger: none
 pool:
   name: Default
   demands:
-    - Agent.Name -equals udbuntu-dev
+    - Agent.Name -equals ubuntu-dev
   vmImage: 'ubuntu-latest'
 
 variables:
