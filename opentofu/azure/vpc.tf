@@ -33,7 +33,7 @@ module "serverless_vnet" {
       delegations = [{
         name = "function-app-delegation"
         service_delegation = {
-          name = "Microsoft.Web/serverfarms"
+          name = "Microsoft.App/environments"
         }
       }]
     },

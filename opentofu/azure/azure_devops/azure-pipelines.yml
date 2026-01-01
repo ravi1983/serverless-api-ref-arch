@@ -1,0 +1,32 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureServiceConnection: 'MyAzureServiceConnection'
+  resourceGroupName: 'serverless_rg'
+  functionAppName: 'cart-function'
+
+stages:
+  - stage: Deploy
+    jobs:
+      - job: DeployJob
+        steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'function-zip'
+              targetPath: '$(Pipeline.Workspace)'
+
+          - task: AzureCLI@2
+            displayName: 'Deploy to Flex Consumption'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az functionapp deployment source config-zip \
+                  -g $(resourceGroupName) \
+                  -n $(functionAppName) \
+                  --src $(Pipeline.Workspace)/function.zip

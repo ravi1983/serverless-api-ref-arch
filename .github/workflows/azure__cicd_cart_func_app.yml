@@ -42,8 +42,15 @@ jobs:
           cd staging
           zip -r ../function.zip .
 
-      - name: Upload to Azure Pipelines
-        run: |
-          echo "Triggering AzDO Release..."
-          # You would typically use a task here to upload to an Azure Storage Blob
-          # which the AzDO Release Pipeline then picks up.
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: function-zip
+          path: function.zip
+
+      - name: Trigger AzDO Pipeline
+        uses: Azure/pipelines@v1
+        with:
+          azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'
+          azure-pipeline-name: 'cart-pipeline'
+          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'
