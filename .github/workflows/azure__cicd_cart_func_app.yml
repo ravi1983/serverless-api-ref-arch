@@ -30,14 +30,18 @@ jobs:
           mkdir staging
           mkdir staging/serverless
           mkdir staging/serverless/cart_actions
-
+          mkdir staging/serverless/db_layer
+          
+          cp -r .python_packages staging/
+          cp serverless/cloud_wrapper/azure/host.json staging/
+          
           cp serverless/cloud_wrapper/azure/cart_handler.py staging/
           cp serverless/cloud_wrapper/azure/__init__.py staging/
 
           cp -r serverless/cart_actions staging/serverless/
           cp serverless/__init__.py staging/serverless/
 
-          cp -r serverless/db_layer/*.py staging/serverless/db_layer/
+          cp serverless/db_layer/*.py staging/serverless/db_layer/
 
           cd staging
           zip -r ../function.zip .
