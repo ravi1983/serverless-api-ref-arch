@@ -1,52 +1,61 @@
+import os
 import time
 from psycopg2.extras import RealDictCursor
 from boto3.dynamodb.conditions import Key
 
 try:
-    # Works in Lambda
     from db import get_psql_connection, get_cart_table
 except ImportError:
-    # Works locally during development
     from serverless.db_layer.db import get_psql_connection, get_cart_table
 
+# Detect environment once
+RUNTIME = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
+
 def add_item_to_cart(user_id, item_id):
-    """Lookup item in RDS and save to DynamoDB with 1hr TTL."""
     conn = get_psql_connection()
-    table = get_cart_table()
-    print(f'Adding item {item_id} to cart for user {user_id}')
+    table_or_container = get_cart_table()
+
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # 1. RDS Lookup
+        with conn.cursor(cursor_factory = RealDictCursor) as cur:
             cur.execute("SELECT id, description, price FROM products WHERE id = %s", (item_id,))
             product = cur.fetchone()
             if not product:
                 raise Exception("Item not found in catalog")
-            print(f'Found item {product["id"]} in catalog')
 
-            # 2. DynamoDB Save
             ttl = int(time.time()) + 3600
             item = {
+                'id': f"{user_id}_{item_id}",
                 'itemId': str(item_id),
                 'userId': str(user_id),
                 'description': product['description'],
                 'price': str(product['price']),
                 'ttl': ttl
             }
-            table.put_item(Item=item)
-            print(f'Saved item {item_id} to cart for user {user_id}')
+
+            if RUNTIME == 'AZURE':
+                table_or_container.upsert_item(body = item)
+            else:
+                table_or_container.put_item(Item = item)
             return {"success": True, "cart": get_cart(user_id)}
     finally:
         conn.close()
 
 def get_cart(user_id):
-    """Retrieve all items for a specific user."""
-    table = get_cart_table()
-    
-    response = table.query(
-        KeyConditionExpression=Key('userId').eq(user_id)
-    )
-    items = response.get('Items', [])
-    print(f'Found {len(items)} items in cart for user {user_id}')
+    table_or_container = get_cart_table()
+
+    if RUNTIME == 'AZURE':
+        query = "SELECT * FROM c WHERE c.userId = @userId"
+        parameters = [{"name": "@userId", "value": str(user_id)}]
+        items = list(table_or_container.query_items(
+            query = query,
+            parameters = parameters,
+            enable_cross_partition_query = True
+        ))
+    else:
+        response = table_or_container.query(
+            KeyConditionExpression = Key('userId').eq(str(user_id))
+        )
+        items = response.get('Items', [])
 
     return {
         "userId": user_id,
@@ -55,11 +64,14 @@ def get_cart(user_id):
     }
 
 def remove_from_cart(user_id, item_id):
-    """Delete a specific item from the user's cart."""
-    table = get_cart_table()
-    table.delete_item(
-        Key={'userId': user_id, 'itemId': item_id}
-    )
-    print(f'Removed item {item_id} from cart for user {user_id}')
+    table_or_container = get_cart_table()
+
+    if RUNTIME == 'AZURE':
+        item_id_key = f"{user_id}_{item_id}"
+        table_or_container.delete_item(item = item_id_key, partition_key = str(user_id))
+    else:
+        table_or_container.delete_item(
+            Key = {'userId': str(user_id), 'itemId': str(item_id)}
+        )
 
     return {"success": True, "cart": get_cart(user_id)}

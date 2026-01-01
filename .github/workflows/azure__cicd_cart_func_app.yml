@@ -1,0 +1,49 @@
+name: CI - Build and Package
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'serverless/cloud_wrapper/azure/cart_handler.py'
+      - 'serverless/cart_actions/**'
+      - 'serverless/db_layer/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install azure-cosmos --target=".python_packages/lib/site-packages"
+
+      - name: Create Zip Artifact
+        run: |
+          mkdir staging
+          mkdir staging/serverless
+          mkdir staging/serverless/cart_actions
+
+          cp serverless/cloud_wrapper/azure/cart_handler.py staging/
+          cp serverless/cloud_wrapper/azure/__init__.py staging/
+
+          cp -r serverless/cart_actions staging/serverless/
+          cp serverless/__init__.py staging/serverless/
+
+          cp -r serverless/db_layer/*.py staging/serverless/db_layer/
+
+          cd staging
+          zip -r ../function.zip .
+
+      - name: Upload to Azure Pipelines
+        run: |
+          echo "Triggering AzDO Release..."
+          # You would typically use a task here to upload to an Azure Storage Blob
+          # which the AzDO Release Pipeline then picks up.

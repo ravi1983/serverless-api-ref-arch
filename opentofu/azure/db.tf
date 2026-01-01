@@ -82,7 +82,6 @@ resource "azurerm_cosmosdb_sql_database" "db" {
   account_name = azurerm_cosmosdb_account.cosmos.name
 }
 
-# 3. Cosmos SQL Container (The "Table")
 resource "azurerm_cosmosdb_sql_container" "cart" {
   name = "cart"
   resource_group_name = azurerm_resource_group.serverless_rg.name

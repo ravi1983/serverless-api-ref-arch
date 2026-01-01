@@ -4,12 +4,26 @@ import boto3
 import json
 
 def get_cart_table():
+    runtime = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
     cart_table = os.environ.get('CART_TABLE_NAME', 'UserCarts')
 
-    endpoint = os.environ.get('DYNAMODB_ENDPOINT') # For integration testing
-    print(f'Endpoint got from env is {endpoint}')
-    dynamodb = boto3.resource('dynamodb')
-    return dynamodb.Table(cart_table)
+    if runtime == 'AZURE':
+        from azure.cosmos import CosmosClient
+        # Cosmos DB requires Endpoint and Key (or a Connection String)
+        endpoint = os.environ.get('COSMOS_ENDPOINT')
+        key = os.environ.get('COSMOS_KEY')
+        database_name = os.environ.get('COSMOS_DATABASE', 'ShoppingCartDB')
+
+        client = CosmosClient(endpoint, key)
+        database = client.get_database_client(database_name)
+        return database.get_container_client(cart_table)
+    else:
+        endpoint = os.environ.get('DYNAMODB_ENDPOINT')
+        print(f'Endpoint got from env is {endpoint}')
+
+        # Use the endpoint_url parameter if an override exists (common in local/test envs)
+        dynamodb = boto3.resource('dynamodb', endpoint_url = endpoint)
+        return dynamodb.Table(cart_table)
 
 secret_arn = os.getenv('DB_SECRET_ARN')
 if secret_arn:
