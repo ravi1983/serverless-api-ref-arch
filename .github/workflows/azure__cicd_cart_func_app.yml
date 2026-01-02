@@ -43,11 +43,6 @@ jobs:
 
           cp serverless/db_layer/*.py staging/serverless/db_layer/
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -55,11 +50,13 @@ jobs:
           path: staging/
           retention-days: 1
 
-      - name: Deploy to Flex Consumption
-        uses: azure/CLI@v2
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          inlineScript: |
-            az functionapp deployment source config-zip \
-              -g serverless_rg \
-              -n cart-function \
-              --src function.zip
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Flex Consumption
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'cart-function'
+          package: staging/
