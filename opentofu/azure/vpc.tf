@@ -57,7 +57,7 @@ module "serverless_vnet" {
   }
 }
 
-# Attach NAT gateway
+# Create NAT gateway
 module "nat_gateway" {
   source = "Azure/avm-res-network-natgateway/azurerm"
 
