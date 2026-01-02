@@ -35,37 +35,35 @@ jobs:
           cp -r .python_packages staging/
           cp serverless/cloud_wrapper/azure/host.json staging/
           
-          cp serverless/cloud_wrapper/azure/cart_handler.py staging/
-          cp serverless/cloud_wrapper/azure/__init__.py staging/
-
+          cp serverless/cloud_wrapper/azure/* staging/
           cp -r serverless/cart_actions staging/serverless/
           cp serverless/__init__.py staging/serverless/
 
           cp serverless/db_layer/*.py staging/serverless/db_layer/
 
-          cd staging
-          zip -r ../function.zip .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: function
+          path: staging/
+          retention-days: 1
 
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Upload to Azure Blob
-        uses: azure/CLI@v2
+      - name: Deploy to Flex Consumption
+        uses: Azure/functions-action@v1
         with:
-          inlineScript: |
-            az storage blob upload \
-              --account-name cartfunccode2026 \
-              --container-name function-releases \
-              --name function.zip \
-              --file function.zip \
-              --overwrite true \
-              --auth-mode login
+          app-name: 'cart-function'
+          package: staging/
 
-      - name: Trigger AzDO Pipeline
-        uses: Azure/pipelines@v1
-        with:
-          azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'
-          azure-pipeline-name: 'Cart-Function-Deploy'
-          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'
+
+#      - name: Trigger AzDO Pipeline
+#        uses: Azure/pipelines@v1
+#        with:
+#          azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'
+#          azure-pipeline-name: 'Cart-Function-Deploy'
+#          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'
+

@@ -1,4 +1,5 @@
 import json
+import logging
 
 import azure.functions as func
 from serverless.cart_actions.process_cart_action import process_cart_action
@@ -14,7 +15,7 @@ def lambda_handler(req: func.HttpRequest) -> func.HttpResponse:
         "DELETE": "removeItem"
     }
     event_type = method_map.get(req.method)
-    print(f'Event type {event_type}')
+    logging.info(f'Event type {event_type}')
 
     user_id = req.params.get('userId')
     req_body = req.get_body().decode('utf-8')

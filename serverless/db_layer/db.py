@@ -2,6 +2,7 @@ import os
 import psycopg2
 import boto3
 import json
+import logging
 
 def get_cart_table():
     runtime = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
@@ -16,10 +17,12 @@ def get_cart_table():
 
         client = CosmosClient(endpoint, key)
         database = client.get_database_client(database_name)
+        logging.info(f'Database client got from Cosmos is {database}')
+
         return database.get_container_client(cart_table)
     else:
         endpoint = os.environ.get('DYNAMODB_ENDPOINT')
-        print(f'Endpoint got from env is {endpoint}')
+        logging.info(f'Endpoint got from env is {endpoint}')
 
         # Use the endpoint_url parameter if an override exists (common in local/test envs)
         dynamodb = boto3.resource('dynamodb', endpoint_url = endpoint)
@@ -34,7 +37,7 @@ else:
 
 def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
-    print(f'DB URL is {os.environ["DATABASE_URL"]}')
+    logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
 
     creds = json.loads(db_creds['SecretString'])
     conn = psycopg2.connect(
@@ -44,4 +47,6 @@ def get_psql_connection():
         database='item_catalog_db',
         sslmode='require'
     )
+    logging.info('Connected to Postgres')
+
     return conn

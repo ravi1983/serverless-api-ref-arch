@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 from psycopg2.extras import RealDictCursor
 from boto3.dynamodb.conditions import Key
 
@@ -7,9 +8,11 @@ try:
     from db import get_psql_connection, get_cart_table
 except ImportError:
     from serverless.db_layer.db import get_psql_connection, get_cart_table
+    logging.info("Running DB using local imports...")
 
 # Detect environment once
 RUNTIME = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
+logging.info(f'Running in {RUNTIME} environment')
 
 def add_item_to_cart(user_id, item_id):
     conn = get_psql_connection()

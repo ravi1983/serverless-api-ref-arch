@@ -66,3 +66,41 @@ resource "azurerm_function_app_flex_consumption" "cart_function" {
     "COSMOS_DATABASE" = azurerm_cosmosdb_sql_database.db.name
   }
 }
+
+# API management for the function
+# resource "azurerm_api_management" "apim" {
+#   name = "cart-api-management"
+#   location = var.REGION
+#   resource_group_name = azurerm_resource_group.serverless_rg.name
+#
+#   publisher_name = "Valluvam"
+#   publisher_email = "admin@valluvam.com"
+#   sku_name = "Consumption_0"
+# }
+#
+# # Create the API definition
+# resource "azurerm_api_management_api" "cart_api" {
+#   name = "cart-api"
+#   resource_group_name = azurerm_resource_group.serverless_rg.name
+#   api_management_name = azurerm_api_management.apim.name
+#   revision = "1"
+#   display_name = "Cart Service API"
+#   path = "v1"
+#   protocols = ["https"]
+#   service_url = "https://${azurerm_function_app_flex_consumption.cart_function.default_hostname}/api"
+# }
+#
+# # Link the Function as a Backend for better routing/metrics
+# resource "azurerm_api_management_backend" "func_backend" {
+#   name = "cart-backend"
+#   resource_group_name = azurerm_resource_group.serverless_rg.name
+#   api_management_name = azurerm_api_management.apim.name
+#   protocol = "http"
+#   url = "https://${azurerm_function_app_flex_consumption.cart_function.default_hostname}/api"
+#
+#   credentials {
+#     header = {
+#       "x-functions-key" = "{{function-key-secret}}" # Best practice: Use a Named Value/Key Vault
+#     }
+#   }
+# }
