@@ -43,9 +43,6 @@ jobs:
 
           cp serverless/db_layer/*.py staging/serverless/db_layer/
 
-          cd staging
-          zip -r ../function.zip .
-
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -55,7 +52,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: function-zip
-          path: function.zip
+          path: staging/
+          retention-days: 1
 
       - name: Deploy to Flex Consumption
         uses: azure/CLI@v2
