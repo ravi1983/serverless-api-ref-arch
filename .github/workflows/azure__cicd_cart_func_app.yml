@@ -33,7 +33,6 @@ jobs:
           mkdir staging/serverless/cart_actions
           mkdir staging/serverless/db_layer
           
-          cp -r .python_packages staging/
           cp serverless/cloud_wrapper/azure/host.json staging/
           
           cp serverless/cloud_wrapper/azure/* staging/
