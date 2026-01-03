@@ -1,0 +1,1 @@
+CREATE DATABASE item_catalog_db;

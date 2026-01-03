@@ -53,6 +53,11 @@ module "serverless_vnet" {
       name = "private_endpoint_subnet"
       address_prefixes = ["10.0.3.0/24"]
       default_outbound_access_enabled = false
+    },
+    bastion_subnet = {
+      name = "bastion_subnet"
+      address_prefixes = ["10.0.4.0/24"]
+      default_outbound_access_enabled = true
     }
   }
 }
@@ -81,6 +86,20 @@ module "nsg_private_subnet" {
   resource_group_name = azurerm_resource_group.serverless_rg.name
 
   security_rules = {
+    # 1. Allow SSH into the Bastion Host from your local IP
+    "AllowBastionSSH" = {
+      name = "AllowBastionSSH"
+      priority = 130
+      direction = "Inbound"
+      access = "Allow"
+      protocol = "Tcp"
+      source_port_range = "*"
+      destination_port_range = "22"
+      source_address_prefix = var.MY_IP
+      destination_address_prefix = "10.0.4.0/24" # Targeting the Bastion Subnet
+    },
+
+    # 2. Allow Function App testing from your local IP (HTTPS)
     "AllowMyIPInbound" = {
       name = "AllowMyIPInbound"
       priority = 140
@@ -92,6 +111,8 @@ module "nsg_private_subnet" {
       source_address_prefix = var.MY_IP
       destination_address_prefix = "*"
     },
+
+    # 3. Allow Internal VNet traffic
     "AllowVnetInbound" = {
       name = "AllowVnetInbound"
       priority = 150
@@ -103,17 +124,20 @@ module "nsg_private_subnet" {
       source_address_prefix = "VirtualNetwork"
       destination_address_prefix = "VirtualNetwork"
     },
+
+    # 4. Allow Postgres traffic from both the Function Subnet AND the Bastion Subnet
     "AllowPostgresInbound" = {
-      name                       = "AllowPostgresInbound"
-      priority                   = 160
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "5432"
-      # Can also do VirtualNetwork
-      source_address_prefix      = "10.0.1.0/24"
-      destination_address_prefix = "10.0.3.0/24"
+      name = "AllowPostgresInbound"
+      priority = 160
+      direction = "Inbound"
+      access = "Allow"
+      protocol = "Tcp"
+      source_port_range = "*"
+      destination_port_range = "5432"
+      # Combined range covering 10.0.1.0 (Functions) and 10.0.4.0 (Bastion)
+      # Or you can use "VirtualNetwork" as the source for simplicity
+      source_address_prefix = "VirtualNetwork"
+      destination_address_prefix = "10.0.3.0/24" # The Postgres Subnet
     }
   }
 }
