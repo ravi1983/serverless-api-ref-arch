@@ -98,39 +98,70 @@ resource "azurerm_function_app_flex_consumption" "cart_function" {
 }
 
 # API management for the function
-# resource "azurerm_api_management" "apim" {
-#   name = "cart-api-management"
-#   location = var.REGION
-#   resource_group_name = azurerm_resource_group.serverless_rg.name
-#
-#   publisher_name = "Valluvam"
-#   publisher_email = "admin@valluvam.com"
-#   sku_name = "Consumption_0"
-# }
-#
-# # Create the API definition
-# resource "azurerm_api_management_api" "cart_api" {
-#   name = "cart-api"
-#   resource_group_name = azurerm_resource_group.serverless_rg.name
-#   api_management_name = azurerm_api_management.apim.name
-#   revision = "1"
-#   display_name = "Cart Service API"
-#   path = "v1"
-#   protocols = ["https"]
-#   service_url = "https://${azurerm_function_app_flex_consumption.cart_function.default_hostname}/api"
-# }
-#
-# # Link the Function as a Backend for better routing/metrics
-# resource "azurerm_api_management_backend" "func_backend" {
-#   name = "cart-backend"
-#   resource_group_name = azurerm_resource_group.serverless_rg.name
-#   api_management_name = azurerm_api_management.apim.name
-#   protocol = "http"
-#   url = "https://${azurerm_function_app_flex_consumption.cart_function.default_hostname}/api"
-#
-#   credentials {
-#     header = {
-#       "x-functions-key" = "{{function-key-secret}}" # Best practice: Use a Named Value/Key Vault
-#     }
-#   }
-# }
+data "azurerm_function_app_host_keys" "keys" {
+  name = azurerm_function_app_flex_consumption.cart_function.name
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+}
+
+resource "azurerm_api_management" "api_management" {
+  name = "cart-api-management"
+  location = var.REGION
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+  publisher_name = "Valluvam"
+  publisher_email = "admin@valluvam.com"
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_api" "cart_api" {
+  name = "cart-api"
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+  api_management_name = azurerm_api_management.api_management.name
+  revision = "1"
+  display_name = "Cart Service API"
+  path = "cart-service"
+  protocols = ["https"]
+
+  subscription_required = false
+}
+
+resource "azurerm_api_management_api_operation" "cart_ops" {
+  for_each = toset(["GET", "POST", "DELETE"])
+
+  operation_id = "Cart-${each.value}-Operations"
+  api_name = azurerm_api_management_api.cart_api.name
+  api_management_name = azurerm_api_management.api_management.name
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+
+  display_name = "Cart ${each.value} Operation"
+  method = each.value
+  url_template = "/cart"
+}
+
+resource "azurerm_api_management_backend" "func_backend" {
+  name = "cart-backend"
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+  api_management_name = azurerm_api_management.api_management.name
+  protocol = "http"
+  url = "https://${azurerm_function_app_flex_consumption.cart_function.default_hostname}/api"
+
+  credentials {
+    header = {
+      "x-functions-key" = data.azurerm_function_app_host_keys.keys.default_function_key
+    }
+  }
+}
+
+resource "azurerm_api_management_api_policy" "api_policy" {
+  api_name = azurerm_api_management_api.cart_api.name
+  api_management_name = azurerm_api_management.api_management.name
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+
+  xml_content = <<XML
+<policies>
+    <inbound>
+        <base />
+        <set-backend-service backend-id="${azurerm_api_management_backend.func_backend.name}" />
+    </inbound>
+</policies>
+XML
+}
