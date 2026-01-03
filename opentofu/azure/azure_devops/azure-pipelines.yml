@@ -4,7 +4,6 @@ pool:
   name: my-pool
   demands:
     - Agent.Name -equals ubuntu-dev
-  vmImage: 'ubuntu-latest'
 
 variables:
   azureServiceConnection: 'MyAzureServiceConnection'
@@ -16,29 +15,28 @@ stages:
     jobs:
       - job: DeployJob
         steps:
-          steps:
-            - task: AzureCLI@2
-              displayName: 'Download Artifact from Azure Storage'
-              inputs:
-                azureSubscription: '$(azureServiceConnection)'
-                scriptType: 'bash'
-                scriptLocation: 'inlineScript'
-                inlineScript: |
-                  az storage blob download \
-                    --account-name cartfunccode2026 \
-                    --container-name function-releases \
-                    --name function.zip \
-                    --file $(Pipeline.Workspace)/function.zip \
-                    --auth-mode key
+          - task: AzureCLI@2
+            displayName: 'Download Artifact from Azure Storage'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az storage blob download \
+                  --account-name cartfunccode2026 \
+                  --container-name function-releases \
+                  --name function.zip \
+                  --file $(Pipeline.Workspace)/function.zip \
+                  --auth-mode key
 
-            - task: AzureCLI@2
-              displayName: 'Deploy to Flex Consumption'
-              inputs:
-                azureSubscription: '$(azureServiceConnection)'
-                scriptType: 'bash'
-                scriptLocation: 'inlineScript'
-                inlineScript: |
-                  az functionapp deployment source config-zip \
-                    -g $(resourceGroupName) \
-                    -n $(functionAppName) \
-                    --src $(Pipeline.Workspace)/function.zip
+          - task: AzureCLI@2
+            displayName: 'Deploy to Flex Consumption'
+            inputs:
+              azureSubscription: '$(azureServiceConnection)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az functionapp deployment source config-zip \
+                  -g $(resourceGroupName) \
+                  -n $(functionAppName) \
+                  --src $(Pipeline.Workspace)/function.zip
