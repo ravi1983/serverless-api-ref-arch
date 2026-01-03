@@ -2,7 +2,6 @@ import os
 import time
 import logging
 from psycopg2.extras import RealDictCursor
-from boto3.dynamodb.conditions import Key
 
 try:
     from db import get_psql_connection, get_cart_table
@@ -55,6 +54,8 @@ def get_cart(user_id):
             enable_cross_partition_query = True
         ))
     else:
+        from boto3.dynamodb.conditions import Key
+
         response = table_or_container.query(
             KeyConditionExpression = Key('userId').eq(str(user_id))
         )

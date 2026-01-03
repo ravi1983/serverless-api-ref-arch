@@ -1,6 +1,5 @@
 import os
 import psycopg2
-import boto3
 import json
 import logging
 
@@ -21,6 +20,8 @@ def get_cart_table():
 
         return database.get_container_client(cart_table)
     else:
+        import boto3
+
         endpoint = os.environ.get('DYNAMODB_ENDPOINT')
         logging.info(f'Endpoint got from env is {endpoint}')
 
@@ -30,6 +31,8 @@ def get_cart_table():
 
 secret_arn = os.getenv('DB_SECRET_ARN')
 if secret_arn:
+    import boto3
+
     secretsmanager = boto3.client('secretsmanager')
     db_creds = secretsmanager.get_secret_value(SecretId=secret_arn)
 else:
