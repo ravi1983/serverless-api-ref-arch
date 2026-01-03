@@ -1,5 +1,7 @@
 variable "REGION" {}
 
+variable "MY_IP" {}
+
 variable "SUBSCRIPTION" {}
 variable "SUBSCRIPTION_NAME" {}
 

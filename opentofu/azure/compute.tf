@@ -25,6 +25,22 @@ resource "azurerm_service_plan" "func_plan" {
   sku_name = "FC1" # Flex Consumption SKU
 }
 
+resource "azurerm_log_analytics_workspace" "cart_logs" {
+  name = "cart-logs-2026"
+  location = var.REGION
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+  sku = "PerGB2018"
+  retention_in_days = 30
+}
+
+resource "azurerm_application_insights" "cart_insights" {
+  name = "cart-app-insights"
+  location = var.REGION
+  resource_group_name = azurerm_resource_group.serverless_rg.name
+  workspace_id = azurerm_log_analytics_workspace.cart_logs.id
+  application_type = "web"
+}
+
 # Create a Linux Function App with Flex Consumption Plan
 resource "azurerm_function_app_flex_consumption" "cart_function" {
   name = "cart-function"
@@ -49,6 +65,18 @@ resource "azurerm_function_app_flex_consumption" "cart_function" {
 
   site_config {
     vnet_route_all_enabled = true
+
+    cors {
+      allowed_origins = ["https://portal.azure.com"]
+      support_credentials = true
+    }
+
+    ip_restriction {
+      action = "Allow"
+      ip_address = var.MY_IP
+      name = "PortalTestingAccess"
+      priority = 100
+    }
   }
 
   app_settings = {
@@ -64,6 +92,8 @@ resource "azurerm_function_app_flex_consumption" "cart_function" {
     "COSMOS_ENDPOINT" = azurerm_cosmosdb_account.cosmos.endpoint
     "COSMOS_KEY" = azurerm_cosmosdb_account.cosmos.primary_key
     "COSMOS_DATABASE" = azurerm_cosmosdb_sql_database.db.name
+
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.cart_insights.connection_string
   }
 }
 

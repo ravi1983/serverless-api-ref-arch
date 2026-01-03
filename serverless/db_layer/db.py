@@ -42,14 +42,18 @@ def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
     logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
 
-    creds = json.loads(db_creds['SecretString'])
-    conn = psycopg2.connect(
-        host=os.environ['DATABASE_URL'],
-        user=creds['username'],
-        password=creds['password'],
-        database='item_catalog_db',
-        sslmode='require'
-    )
-    logging.info('Connected to Postgres')
+    try:
+        creds = json.loads(db_creds['SecretString'])
+        conn = psycopg2.connect(
+            host=os.environ['DATABASE_URL'],
+            user=creds['username'],
+            password=creds['password'],
+            database='item_catalog_db',
+            sslmode='require'
+        )
+        logging.info('Connected to Postgres')
+    except Exception as e:
+        logging.error(f'Error connecting to Postgres: {e}')
+        raise e
 
     return conn

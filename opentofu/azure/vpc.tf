@@ -81,9 +81,20 @@ module "nsg_private_subnet" {
   resource_group_name = azurerm_resource_group.serverless_rg.name
 
   security_rules = {
+    "AllowMyIPInbound" = {
+      name = "AllowMyIPInbound"
+      priority = 140
+      direction = "Inbound"
+      access = "Allow"
+      protocol = "Tcp"
+      source_port_range = "*"
+      destination_port_range = "443"
+      source_address_prefix = var.MY_IP
+      destination_address_prefix = "*"
+    },
     "AllowVnetInbound" = {
       name = "AllowVnetInbound"
-      priority = 100
+      priority = 150
       direction = "Inbound"
       access = "Allow"
       protocol = "Tcp"
@@ -94,7 +105,7 @@ module "nsg_private_subnet" {
     },
     "AllowPostgresInbound" = {
       name                       = "AllowPostgresInbound"
-      priority                   = 110
+      priority                   = 160
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
