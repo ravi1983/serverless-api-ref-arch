@@ -67,22 +67,9 @@ jobs:
             --overwrite true \
             --auth-mode login
 
-      - name: Trigger AzDO Pipeline via CLI
-        run: |
-          # Set the PAT for the CLI to use
-          echo "${{ secrets.AZURE_DEVOPS_TOKEN }}" | az devops login --organization https://dev.azure.com/valluvam
-
-          # Trigger the pipeline
-          az pipelines build queue \
-            --organization https://dev.azure.com/valluvam \
-            --project serverless-cart \
-            --definition-name 'Cart-Function-Deploy'
-        env:
-          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_TOKEN }}
-
-#      - name: Deploy to Flex Consumption
-#        uses: Azure/functions-action@v1
-#        with:
-#          app-name: 'cart-function'
-#          package: staging/
-
+      - name: Trigger AzDO Pipeline
+        uses: Azure/pipelines@v1
+        with:
+          azure-devops-project-url: ${{ secrets.AZURE_DEVOPS_URL }}
+          azure-pipeline-name: 'Cart-Function-Deploy'
+          azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
