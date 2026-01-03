@@ -26,12 +26,7 @@ jobs:
           pip install -r requirements.txt
           pytest
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Flex Consumption
+      - name: Create zip artifact
         run: |
           mkdir staging
           mkdir staging/serverless
@@ -47,15 +42,11 @@ jobs:
           
           cd staging
           zip -r function.zip *
-          
-          # az functionapp deployment source config-zip -g serverless_rg -n cart-function --src function.zip
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          name: function
-          path: staging/
-          retention-days: 1
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Upload to Azure Blob Storage
         run: |
@@ -67,9 +58,15 @@ jobs:
             --overwrite true \
             --auth-mode login
 
-      - name: Trigger AzDO Pipeline
-        uses: Azure/pipelines@v1
-        with:
-          azure-devops-project-url: ${{ secrets.AZURE_DEVOPS_URL }}
-          azure-pipeline-name: 'Cart-Function-Deploy'
-          azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
+      - name: Trigger AzDO Pipeline via CLI
+        run: |
+          # Set the PAT for the CLI to use
+          echo "${{ secrets.AZURE_DEVOPS_TOKEN }}" | az devops login --organization https://dev.azure.com/valluvam
+
+          # Trigger the pipeline
+          az pipelines build queue \
+            --organization https://dev.azure.com/valluvam \
+            --project serverless-cart \
+            --definition-name 'Cart-Function-Deploy'
+        env:
+          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_TOKEN }}
