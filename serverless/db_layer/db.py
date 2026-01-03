@@ -3,8 +3,9 @@ import psycopg2
 import json
 import logging
 
+runtime = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
+
 def get_cart_table():
-    runtime = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
     cart_table = os.environ.get('CART_TABLE_NAME', 'UserCarts')
 
     if runtime == 'AZURE':
@@ -42,8 +43,12 @@ def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
     logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
 
-    try:
+    if runtime == 'AZURE':
+        creds = {"username": os.environ['DB_USER'], "password": os.environ['DB_PASSWORD']}
+    else:
         creds = json.loads(db_creds['SecretString'])
+
+    try:
         conn = psycopg2.connect(
             host=os.environ['DATABASE_URL'],
             user=creds['username'],

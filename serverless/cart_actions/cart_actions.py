@@ -39,6 +39,9 @@ def add_item_to_cart(user_id, item_id):
             else:
                 table_or_container.put_item(Item = item)
             return {"success": True, "cart": get_cart(user_id)}
+    except Exception as e:
+        logging.error(f"Error adding item to cart: {e}")
+        raise e
     finally:
         conn.close()
 
