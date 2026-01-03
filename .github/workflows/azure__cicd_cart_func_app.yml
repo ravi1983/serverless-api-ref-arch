@@ -48,7 +48,7 @@ jobs:
           cd staging
           zip -r function.zip *
           
-          az functionapp deployment source config-zip -g serverless_rg -n cart-function --src function.zip
+          # az functionapp deployment source config-zip -g serverless_rg -n cart-function --src function.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -57,15 +57,26 @@ jobs:
           path: staging/
           retention-days: 1
 
+      - name: Upload to Azure Blob Storage
+        run: |
+          az storage blob upload \
+            --account-name cartfunccode2026 \
+            --container-name function-releases \
+            --name function.zip \
+            --file staging/function.zip \
+            --overwrite true \
+            --auth-mode login
+
+      - name: Trigger AzDO Pipeline
+        uses: Azure/pipelines@v1
+        with:
+          azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'
+          azure-pipeline-name: 'Cart-Function-Deploy'
+          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'
+
 #      - name: Deploy to Flex Consumption
 #        uses: Azure/functions-action@v1
 #        with:
 #          app-name: 'cart-function'
 #          package: staging/
 
-      #      - name: Trigger AzDO Pipeline
-      #        uses: Azure/pipelines@v1
-      #        with:
-      #          azure-devops-project-url: '${{ secrets.AZURE_DEVOPS_URL }}'
-      #          azure-pipeline-name: 'Cart-Function-Deploy'
-      #          azure-devops-token: '${{ secrets.AZURE_DEVOPS_TOKEN }}'

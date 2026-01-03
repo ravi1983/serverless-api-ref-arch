@@ -25,7 +25,7 @@ stages:
                 scriptLocation: 'inlineScript'
                 inlineScript: |
                   az storage blob download \
-                    --account-name linuxfunctionappsa \
+                    --account-name cartfunccode2026 \
                     --container-name function-releases \
                     --name function.zip \
                     --file $(Pipeline.Workspace)/function.zip \
