@@ -160,6 +160,16 @@ resource "azurerm_api_management_api_policy" "api_policy" {
 <policies>
     <inbound>
         <base />
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Invalid or missing token.">
+            <openid-config url="https://login.microsoftonline.com/${var.TENANT_ID}/v2.0/.well-known/openid-configuration" />
+            <audiences>
+                <audience>${var.CART_APP_CLIENT_ID}</audience>
+            </audiences>
+            <issuers>
+                <issuer>https://sts.windows.net/${var.TENANT_ID}/</issuer>
+            </issuers>
+        </validate-jwt>
+
         <set-backend-service backend-id="${azurerm_api_management_backend.func_backend.name}" />
     </inbound>
 </policies>

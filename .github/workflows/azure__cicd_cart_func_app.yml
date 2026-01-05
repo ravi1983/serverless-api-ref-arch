@@ -2,10 +2,10 @@ name: Deploy Azure Function
 on:
   push:
     branches: [ master ]
-#    paths:
-#      - 'serverless/cloud_wrapper/azure/cart_handler.py'
-#      - 'serverless/cart_actions/**'
-#      - 'serverless/db_layer/**'
+    paths:
+      - 'serverless/cloud_wrapper/azure/cart_handler.py'
+      - 'serverless/cart_actions/**'
+      - 'serverless/db_layer/**'
 
 jobs:
   build-func-app:

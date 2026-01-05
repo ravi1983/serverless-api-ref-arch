@@ -3,8 +3,11 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
     }
-    azuredevops = {
+    azuredevops = { # To create AZ Devops pipelines and connections
       source  = "microsoft/azuredevops"
+    }
+    azuread = { # To enable google login
+      source  = "hashicorp/azuread"
     }
   }
 }

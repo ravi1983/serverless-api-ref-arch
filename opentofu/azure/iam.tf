@@ -1,0 +1,1 @@
+# Create external identity provider and application registration manually
