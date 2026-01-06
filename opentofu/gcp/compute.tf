@@ -55,6 +55,10 @@ resource "google_cloudfunctions2_function" "cart_function" {
 
     environment_variables = {
       CLOUD_RUNTIME = "GCP"
+
+      DATABASE_URL = google_sql_database_instance.cart-db-instance.private_ip_address
+      DB_USER = google_sql_user.users.name
+      DB_PASSWORD = var.DB_PASSWORD
     }
 
     # All incoming requests will go though VPC

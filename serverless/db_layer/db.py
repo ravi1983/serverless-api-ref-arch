@@ -19,6 +19,12 @@ def get_cart_table():
         logging.info(f'Database client got from Cosmos is {database}')
 
         return database.get_container_client(cart_table)
+    elif runtime == 'GCP':
+        from google.cloud import firestore
+
+        db = firestore.Client()
+        logging.info(f'Firestore client initialized for collection: {cart_table}')
+        return db.collection(cart_table)
     else:
         import boto3
 

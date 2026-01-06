@@ -3,3 +3,9 @@ variable "PROJECT_ID" {
 }
 
 variable "REGION" {}
+
+variable "DB_PASSWORD" {
+  description = "Password for the Cloud SQL database user"
+  type        = string
+  sensitive   = true
+}

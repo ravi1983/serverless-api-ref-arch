@@ -25,8 +25,9 @@ def add_item_to_cart(user_id, item_id):
                 raise Exception("Item not found in catalog")
 
             ttl = int(time.time()) + 3600
+            doc_id = f"{user_id}_{item_id}"
             item = {
-                'id': f"{user_id}_{item_id}",
+                'id': doc_id,
                 'itemId': str(item_id),
                 'userId': str(user_id),
                 'description': product['description'],
@@ -36,6 +37,8 @@ def add_item_to_cart(user_id, item_id):
 
             if RUNTIME == 'AZURE':
                 table_or_container.upsert_item(body = item)
+            elif RUNTIME == 'GCP':
+                table_or_container.document(doc_id).set(item)
             else:
                 table_or_container.put_item(Item = item)
             return {"success": True, "cart": get_cart(user_id)}
@@ -56,6 +59,9 @@ def get_cart(user_id):
             parameters = parameters,
             enable_cross_partition_query = True
         ))
+    elif RUNTIME == 'GCP':
+        docs = table_or_container.where("userId", "==", str(user_id)).stream()
+        items = [doc.to_dict() for doc in docs]
     else:
         from boto3.dynamodb.conditions import Key
 
@@ -72,10 +78,12 @@ def get_cart(user_id):
 
 def remove_from_cart(user_id, item_id):
     table_or_container = get_cart_table()
+    doc_id = f"{user_id}_{item_id}"
 
     if RUNTIME == 'AZURE':
-        item_id_key = f"{user_id}_{item_id}"
-        table_or_container.delete_item(item = item_id_key, partition_key = str(user_id))
+        table_or_container.delete_item(item = doc_id, partition_key = str(user_id))
+    elif RUNTIME == 'GCP':
+        table_or_container.document(doc_id).delete()
     else:
         table_or_container.delete_item(
             Key = {'userId': str(user_id), 'itemId': str(item_id)}
