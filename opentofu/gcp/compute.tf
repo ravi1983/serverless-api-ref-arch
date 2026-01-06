@@ -1,13 +1,3 @@
-resource "google_vpc_access_connector" "vpc-connector" {
-  name          = "vpc-connector"
-  region        = var.REGION
-  ip_cidr_range = "10.8.0.0/28"
-  network       = module.serverless-vpc.network_name
-
-  max_instances = "3"
-  min_instances = "2"
-}
-
 resource "google_storage_bucket" "function_bucket" {
   name = "${var.PROJECT_ID}-function-source"
   location = var.REGION
@@ -29,8 +19,18 @@ resource "google_storage_bucket_object" "dummy_zip_object" {
   source = data.archive_file.dummy_zip.output_path
 }
 
+resource "google_vpc_access_connector" "vpc-connector" {
+  name          = "vpc-connector"
+  region        = var.REGION
+  ip_cidr_range = "10.8.0.0/28"
+  network       = module.serverless-vpc.network_name
+
+  max_instances = "3"
+  min_instances = "2"
+}
 
 resource "google_cloudfunctions2_function" "cart_function" {
+  # provider    = google-beta
   name        = "cart-function"
   location    = var.REGION
   project     = var.PROJECT_ID
@@ -53,9 +53,21 @@ resource "google_cloudfunctions2_function" "cart_function" {
     available_memory   = "256Mi"
     timeout_seconds    = 60
 
-    vpc_connector = google_vpc_access_connector.vpc-connector.id
+    environment_variables = {
+      CLOUD_RUNTIME = "GCP"
+    }
+
+    # All incoming requests will go though VPC
     ingress_settings = "ALLOW_INTERNAL_ONLY"
+
+    # Direct egress connection is the modern way, but PITA to delete.
+    # Creating VPC connector for ease of development
+    vpc_connector = google_vpc_access_connector.vpc-connector.id
     vpc_connector_egress_settings = "ALL_TRAFFIC"
+    # direct_vpc_network_interface {
+    #   network    = module.serverless-vpc.network_name
+    #   subnetwork = module.serverless-vpc.subnets_names[0]
+    # }
   }
 
   lifecycle {

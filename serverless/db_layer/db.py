@@ -1,5 +1,4 @@
 import os
-import psycopg2
 import json
 import logging
 
@@ -39,15 +38,9 @@ if secret_arn:
 else:
     db_creds = {'SecretString': '{"username": "postgres", "password": ""}'}
 
-def get_psql_connection():
-    """Returns a connection to the RDS Postgres instance."""
-    logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
 
-    if runtime == 'AZURE':
-        creds = {"username": os.environ['DB_USER'], "password": os.environ['DB_PASSWORD']}
-    else:
-        creds = json.loads(db_creds['SecretString'])
-
+def _postgres_connect(creds):
+    import psycopg2
     try:
         conn = psycopg2.connect(
             host=os.environ['DATABASE_URL'],
@@ -62,3 +55,37 @@ def get_psql_connection():
         raise e
 
     return conn
+
+def _cloud_sql_connect(creds):
+    from google.cloud.sql.connector import Connector, IPTypes
+    connector = Connector()
+
+    try:
+        conn = connector.connect(
+            os.environ['DATABASE_URL'],
+            "psycopg2",
+            user=creds['username'],
+            password=creds['password'],
+            database='item_catalog_db',
+            ip_type=IPTypes.PRIVATE
+        )
+        logging.info('Connected to Postgres')
+    except Exception as e:
+        logging.error(f'Error connecting to Postgres: {e}')
+        raise e
+
+    return conn
+
+def get_psql_connection():
+    """Returns a connection to the RDS Postgres instance."""
+    logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
+
+    if runtime == 'AZURE' or runtime == 'GCP':
+        creds = {"username": os.environ['DB_USER'], "password": os.environ['DB_PASSWORD']}
+    else:
+        creds = json.loads(db_creds['SecretString'])
+
+    if runtime == 'GCP':
+        return _cloud_sql_connect(creds)
+    else:
+        return _postgres_connect(creds)
