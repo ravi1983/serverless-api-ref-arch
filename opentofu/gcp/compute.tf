@@ -29,6 +29,12 @@ resource "google_vpc_access_connector" "vpc-connector" {
   min_instances = "2"
 }
 
+resource "google_service_account" "cart-function-sa" {
+  account_id   = "cart-function-sa"
+  display_name = "Service Account for Cart Cloud Function"
+  project      = var.PROJECT_ID
+}
+
 resource "google_cloudfunctions2_function" "cart_function" {
   # provider    = google-beta
   name        = "cart-function"

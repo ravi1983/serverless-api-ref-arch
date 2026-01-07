@@ -1,0 +1,9 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: cart-function
+manifests:
+  rawYaml:
+    - service.yaml # gcloud run services describe cart-function   --format=export   --region=us-central1 > service.yaml
+deploy:
+  cloudrun: {}

@@ -1,0 +1,53 @@
+name: Deploy Cloud Function
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'serverless/cloud_wrapper/gcp/**'
+      - 'serverless/cart_actions/**'
+      - 'serverless/db_layer/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Create zip file
+        run: |
+          mkdir staging
+          mkdir staging/serverless
+          mkdir staging/serverless/cart_actions
+          mkdir staging/serverless/db_layer
+
+          cp serverless/cloud_wrapper/gcp/main.py staging/
+          cp serverless/cloud_wrapper/gcp/requirements.txt staging/
+          cp serverless/cloud_wrapper/gcp/__init__.py staging/
+          cp serverless/__init__.py staging/serverless/
+          cp serverless/cart_actions/cart_actions.py staging/serverless/cart_actions/
+          cp serverless/cart_actions/process_cart_action.py staging/serverless/cart_actions/
+          cp serverless/cart_actions/__init__.py staging/serverless/cart_actions/
+          cp serverless/db_layer/*.py staging/serverless/db_layer/
+
+      - name: Deploy function
+        run: |
+          cd staging
+
+          gcloud functions deploy cart-function \
+          --gen2 \
+          --region us-central1 \
+          --runtime python312 \
+          --source . \
+          --entry-point cart_handler \
+          --trigger-http \
+          --allow-unauthenticated

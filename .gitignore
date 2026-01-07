@@ -10,3 +10,4 @@ terraform.tfstate
 terraform.tfstate.backup
 
 .env
+/serverless/cloud_wrapper/gcp/service.yaml

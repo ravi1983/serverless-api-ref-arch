@@ -1,6 +1,8 @@
 import json
+import functions_framework
 from serverless.cart_actions.process_cart_action import process_cart_action
 
+@functions_framework.http
 def cart_handler(request):
     # Determine the action based on the HTTP method
     method_map = {
