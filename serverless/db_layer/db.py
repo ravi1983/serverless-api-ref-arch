@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 
 runtime = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
 
@@ -16,20 +15,20 @@ def get_cart_table():
 
         client = CosmosClient(endpoint, key)
         database = client.get_database_client(database_name)
-        logging.info(f'Database client got from Cosmos is {database}')
+        print(f'Database client got from Cosmos is {database}')
 
         return database.get_container_client(cart_table)
     elif runtime == 'GCP':
         from google.cloud import firestore
 
-        db = firestore.Client()
-        logging.info(f'Firestore client initialized for collection: {cart_table}')
-        return db.collection(cart_table)
+        db = firestore.Client(database=cart_table)
+        print(f'Firestore client initialized for DB: {cart_table}')
+        return db.collection("cart")
     else:
         import boto3
 
         endpoint = os.environ.get('DYNAMODB_ENDPOINT')
-        logging.info(f'Endpoint got from env is {endpoint}')
+        print(f'Endpoint got from env is {endpoint}')
 
         # Use the endpoint_url parameter if an override exists (common in local/test envs)
         dynamodb = boto3.resource('dynamodb', endpoint_url = endpoint)
@@ -55,9 +54,9 @@ def _postgres_connect(creds):
             database='item_catalog_db',
             sslmode='require'
         )
-        logging.info('Connected to Postgres')
+        print('Connected to Postgres')
     except Exception as e:
-        logging.error(f'Error connecting to Postgres: {e}')
+        print(f'Error connecting to Postgres: {e}')
         raise e
 
     return conn
@@ -75,16 +74,16 @@ def _cloud_sql_connect(creds):
             database='item_catalog_db',
             ip_type=IPTypes.PRIVATE
         )
-        logging.info('Connected to Postgres')
+        print('Connected to Postgres')
     except Exception as e:
-        logging.error(f'Error connecting to Postgres: {e}')
+        print(f'Error connecting to Postgres: {e}')
         raise e
 
     return conn
 
 def get_psql_connection():
     """Returns a connection to the RDS Postgres instance."""
-    logging.info(f'DB URL is {os.environ["DATABASE_URL"]}')
+    print(f'DB URL is {os.environ["DATABASE_URL"]}')
 
     if runtime == 'AZURE' or runtime == 'GCP':
         creds = {"username": os.environ['DB_USER'], "password": os.environ['DB_PASSWORD']}

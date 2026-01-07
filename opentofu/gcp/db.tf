@@ -25,7 +25,7 @@ resource "google_sql_user" "users" {
 }
 
 resource "google_sql_database_instance" "cart-db-instance" {
-  name = "cart-db-instance"
+  name = "cart-db-instance-1"
   database_version = "POSTGRES_15"
   region = var.REGION
 
@@ -46,7 +46,7 @@ resource "google_sql_database_instance" "cart-db-instance" {
 
 resource "google_firestore_database" "cart" {
   project     = var.PROJECT_ID
-  name        = "cart"
+  name        = "cartdb"
   location_id = var.REGION
   type        = "FIRESTORE_NATIVE"
 

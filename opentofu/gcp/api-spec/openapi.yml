@@ -1,0 +1,70 @@
+swagger: "2.0"
+info:
+  title: "Cart API"
+  description: "API for Cart Function with specific payloads"
+  version: "1.0.0"
+schemes:
+  - "https"
+paths:
+  /cart:
+    get:
+      summary: "Get cart items for a user"
+      operationId: "getCart"
+      x-google-backend:
+        address: ${FUNCTION_URL}
+        path_translation: CONSTANT_ADDRESS
+        jwt_audience: ${FUNCTION_URL}
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Success"
+    post:
+      summary: "Add item to cart"
+      operationId: "postCart"
+      x-google-backend:
+        address: ${FUNCTION_URL}
+        path_translation: CONSTANT_ADDRESS
+        jwt_audience: ${FUNCTION_URL}
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "item"
+          in: "body"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              itemId:
+                type: "string"
+      responses:
+        201:
+          description: "Created"
+    delete:
+      summary: "Remove item from cart"
+      operationId: "deleteCart"
+      x-google-backend:
+        address: ${FUNCTION_URL}
+        path_translation: CONSTANT_ADDRESS
+        jwt_audience: ${FUNCTION_URL}
+      parameters:
+        - name: "userId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "item"
+          in: "body"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              itemId:
+                type: "string"
+      responses:
+        204:
+          description: "Deleted"

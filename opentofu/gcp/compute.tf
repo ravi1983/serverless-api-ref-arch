@@ -65,10 +65,11 @@ resource "google_cloudfunctions2_function" "cart_function" {
       DATABASE_URL = google_sql_database_instance.cart-db-instance.private_ip_address
       DB_USER = google_sql_user.users.name
       DB_PASSWORD = var.DB_PASSWORD
+      CART_TABLE_NAME = google_firestore_database.cart.name
     }
 
-    # All incoming requests will go though VPC
-    ingress_settings = "ALLOW_INTERNAL_ONLY"
+    # Authenticated by IAM
+    ingress_settings = "ALLOW_ALL"
 
     # Direct egress connection is the modern way, but PITA to delete.
     # Creating VPC connector for ease of development
@@ -87,4 +88,70 @@ resource "google_cloudfunctions2_function" "cart_function" {
       build_config[0].source[0].storage_source[0].generation,
     ]
   }
+}
+
+
+# API Gateway
+resource "google_api_gateway_api" "cart_api" {
+  provider = google-beta
+  api_id   = "cart-api"
+  project  = var.PROJECT_ID
+}
+
+resource "google_api_gateway_gateway" "gw" {
+  provider     = google-beta
+  api_config   = google_api_gateway_api_config.cart_cfg.id
+  gateway_id   = "cart-gateway"
+  region       = var.REGION
+  project      = var.PROJECT_ID
+}
+
+locals {
+  openapi_spec = templatefile("${path.module}/api-spec/openapi.yml", {
+    FUNCTION_URL = google_cloudfunctions2_function.cart_function.url
+  })
+}
+
+resource "google_api_gateway_api_config" "cart_cfg" {
+  provider      = google-beta
+  api           = google_api_gateway_api.cart_api.api_id
+  api_config_id = "cart-config-${md5(local.openapi_spec)}"
+  project       = var.PROJECT_ID
+
+  gateway_config {
+    backend_config {
+      google_service_account = google_service_account.api_gateway_sa.email
+    }
+  }
+
+  # Ideally should be part of CI
+  openapi_documents {
+    document {
+      path = "openapi.yaml"
+      contents = base64encode(local.openapi_spec)
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "google_service_account" "api_gateway_sa" {
+  account_id   = "cart-api-gateway-sa"
+  display_name = "Service Account for Cart API Gateway"
+  project      = var.PROJECT_ID
+}
+
+resource "google_cloud_run_service_iam_member" "invoker" {
+  project  = google_cloudfunctions2_function.cart_function.project
+  location = google_cloudfunctions2_function.cart_function.location
+  service  = google_cloudfunctions2_function.cart_function.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
+}
+
+output "gateway_url" {
+  value = "https://${google_api_gateway_gateway.gw.default_hostname}"
+  description = "The base URL for your cart API"
 }

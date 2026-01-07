@@ -1,17 +1,16 @@
 import os
 import time
-import logging
 from psycopg2.extras import RealDictCursor
 
 try:
     from db import get_psql_connection, get_cart_table
 except ImportError:
     from serverless.db_layer.db import get_psql_connection, get_cart_table
-    logging.info("Running DB using local imports...")
+    print("Running DB using local imports...")
 
 # Detect environment once
 RUNTIME = os.environ.get('CLOUD_RUNTIME', 'AWS').upper()
-logging.info(f'Running in {RUNTIME} environment')
+print(f'Running in {RUNTIME} environment')
 
 def add_item_to_cart(user_id, item_id):
     conn = get_psql_connection()
@@ -43,7 +42,7 @@ def add_item_to_cart(user_id, item_id):
                 table_or_container.put_item(Item = item)
             return {"success": True, "cart": get_cart(user_id)}
     except Exception as e:
-        logging.error(f"Error adding item to cart: {e}")
+        print(f"Error adding item to cart: {e}")
         raise e
     finally:
         conn.close()

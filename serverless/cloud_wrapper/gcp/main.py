@@ -16,7 +16,7 @@ def cart_handler(request):
     result = process_cart_action(
         event_type,
         request.args.get('userId'),
-        request.get_json(silent=True) or {}
+        json.dumps(request.get_json(silent=True) or {})
     )
     return (
         json.dumps(result, default=str),
