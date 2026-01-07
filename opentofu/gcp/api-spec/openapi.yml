@@ -7,6 +7,22 @@ schemes:
   - "https"
 paths:
   /cart:
+    options:
+      summary: "CORS support"
+      operationId: "corsCart"
+      x-google-backend:
+        address: ${FUNCTION_URL}
+        jwt_audience: ${FUNCTION_URL}
+      responses:
+        204:
+          description: "No Content"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
     get:
       summary: "Get cart items for a user"
       operationId: "getCart"
