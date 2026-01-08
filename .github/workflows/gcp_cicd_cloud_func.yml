@@ -49,5 +49,4 @@ jobs:
           --runtime python312 \
           --source . \
           --entry-point cart_handler \
-          --trigger-http \
-          --allow-unauthenticated
+          --trigger-http
