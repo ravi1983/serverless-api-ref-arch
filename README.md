@@ -1,7 +1,7 @@
 # Multi-Cloud Serverless Reference Architecture
 ## Cross-Provider Implementation: AWS, Azure, & GCP
 
-This repository contains a reference implementation of a serverless commerce API deployed across the three major cloud providers. The project demonstrates a "write-once, run-anywhere" logic strategy, managed via infrastructure-as-code (OpenTofu) and automated CI/CD pipelines.
+This repository contains a reference implementation of a serverless commerce API deployed across the three major cloud providers. The project demonstrates a "write-once, run-anywhere **business logic** with provider-specific adapters" logic strategy, managed via infrastructure-as-code (OpenTofu) and automated CI/CD pipelines.
 
 The core objective is to showcase identity federation (Google Social Login), private networking patterns, and polyglot persistence in a serverless context.
 
@@ -50,7 +50,8 @@ The architecture follows a standardized pattern adapted to the specific networki
 The project utilizes a hybrid CI/CD strategy to bridge source control with provider-specific deployment engines.
 
 * **Continuous Integration:** GitHub Actions handles the build phase, linting, and artifact creation.
-* **Continuous Delivery:** * **AWS:** AWS CodeDeploy handles the transition of Lambda versions.
+* **Continuous Delivery:**
+    * **AWS:** AWS CodeDeploy handles the transition of Lambda versions.
     * **Azure:** Azure DevOps pipelines manage the deployment to Function App slots.
     * **GCP:** Google Cloud Deploy orchestrates the release to Cloud Run.
 
